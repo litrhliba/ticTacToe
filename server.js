@@ -96,11 +96,19 @@ io.on('connection', (socket) => {
                 tableDone.push(i)
                 if (checkIfWin(oS)) {
                     inGame = 0
+                    xS = []
+                    oS = []
+                    clients = []
+                    tableDone = []
                     console.log('O wins')
                     io.to('room1').emit("win", clients[1])
                 }
                 if (checkIfWin(xS)) {
                     inGame = 0
+                    xS = []
+                    oS = []
+                    clients = []
+                    tableDone = []
                     console.log('X wins')
                     io.to('room1').emit("win", clients[0])
                 }
