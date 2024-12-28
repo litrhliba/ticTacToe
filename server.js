@@ -154,16 +154,24 @@ io.on('connection', (socket) => {
     })
     socket.on('disconnect', () => {
         let i = inClients(socket.id)
-        if (socket.id == clients[i][0]) {
-            addSocket(clients[i][1])
-            clients.splice(clients[i], 1)
-            xS.splice(xS[i], 1)
-            oS.splice(oS[i], 1)
-            tableDone.splice(tableDone[i], 1)
-            state.splice(state[i], 1)
+        if (clients[i].length == 2) {
+            if (socket.id == clients[i][0]) {
+                addSocket(clients[i][1])
+                clients.splice(clients[i], 1)
+                xS.splice(xS[i], 1)
+                oS.splice(oS[i], 1)
+                tableDone.splice(tableDone[i], 1)
+                state.splice(state[i], 1)
 
+            } else {
+                addSocket(clients[i][0])
+                clients.splice(clients[i], 1)
+                xS.splice(xS[i], 1)
+                oS.splice(oS[i], 1)
+                tableDone.splice(tableDone[i], 1)
+                state.splice(state[i], 1)
+            }
         } else {
-            addSocket(clients[i][0])
             clients.splice(clients[i], 1)
             xS.splice(xS[i], 1)
             oS.splice(oS[i], 1)
