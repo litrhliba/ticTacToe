@@ -31,7 +31,7 @@
         let temp = '<div class="row">'
 
         for (let j = 1; j < 4; j++) {
-            temp += `<div class="col" id="${3*index+j}" onclick="socket.emit('turn',${3*index+j})"></div>`
+            temp += `<div class="col" id="${3*index+j}" onclick="console.log('turn'); socket.emit('turn',${3*index+j})"></div>`
 
         }
         temp += '</div>'
