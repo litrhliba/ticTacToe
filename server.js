@@ -57,7 +57,7 @@ function inClients(id) {
 }
 
 function addSocket(id) {
-    if (clients.length == 0) {
+    if (clients.length == 0 && whoseTurn.length == 0) {
         clients.push([id])
         state.push(0)
         tableDone.push([])
@@ -73,6 +73,8 @@ function addSocket(id) {
             tableDone.push([])
             xS.push([])
             oS.push([])
+            let i = inClients(id)
+            whoseTurn[i] = clients[i][0]
         } else {
             clients.push([id])
             state.push(0)
@@ -81,10 +83,16 @@ function addSocket(id) {
             tableDone.push([])
             xS.push([])
             oS.push([])
+            let i = inClients(id)
+            whoseTurn[i] = clients[i][0]
         }
+
+        console.log('C', clients)
+        console.log('T', tableDone)
+        console.log('W', whoseTurn)
+        console.log('S', state)
     }
 }
-
 
 
 io.on('connection', (socket) => {
@@ -93,25 +101,26 @@ io.on('connection', (socket) => {
     if (inClients(socket.id) == -1) {
         addSocket(socket.id)
         let i = inClients(socket.id)
-        console.log(clients)
-        console.log(state)
+
         whoseTurn[i] = clients[i][0]
-        console.log(whoseTurn[i])
-        socket.join('room' + i)
+
         io.to(clients[i][0]).emit("turn", whoseTurn[i])
         io.to(clients[i][1]).emit("turn", whoseTurn[i])
             // io.to('room' + i).emit("turn", whoseTurn[i])
     }
-    let index = inClients(socket.id)
 
 
+    let index
 
     socket.on('turn', (i) => {
-        console.log(clients)
-        console.log(tableDone)
+        index = inClients(socket.id)
+        console.log('C', clients)
+        console.log('T', tableDone)
+        console.log('W', whoseTurn)
+        console.log('S', state)
         if (state[index]) {
-            console.log(whoseTurn[index], socket.id)
-            console.log('turn')
+            // console.log(whoseTurn[index], socket.id)
+            // console.log('turn')
             let pattern
             console.log(socket.id, i)
             if (tableDone[index].length % 2 == 0) {
@@ -120,7 +129,7 @@ io.on('connection', (socket) => {
                 pattern = 'o'
             }
 
-            if (whoseTurn[index] == socket.id && !tableDone[index].includes(i)) {
+            if (whoseTurn[index] == socket.id && !tableDone[index].includes(i) && state[index]) {
                 // io.to('room' + index).emit('doneTurn', i, pattern)
                 io.to(clients[index][0]).emit("doneTurn", i, pattern)
                 io.to(clients[index][1]).emit("doneTurn", i, pattern)
@@ -150,7 +159,7 @@ io.on('connection', (socket) => {
                 if (checkIfWin(xS[index])) {
                     state[index] = 0
 
-                    console.log('O wins')
+                    console.log('X wins')
                     io.to(clients[index][0]).emit("win", clients[index][0])
                     io.to(clients[index][1]).emit("win", clients[index][0])
                         // io.to('room' + index).emit("win", clients[index][0])
@@ -168,27 +177,32 @@ io.on('connection', (socket) => {
         if (i != -1) {
             if (clients[i].length == 2) {
                 if (socket.id == clients[i][0]) {
-                    addSocket(clients[i][1])
-                    clients.splice(clients[i], 1)
-                    xS.splice(xS[i], 1)
-                    oS.splice(oS[i], 1)
-                    tableDone.splice(tableDone[i], 1)
-                    state.splice(state[i], 1)
+                    temp = clients[i][1]
+                    clients.splice(i, 1)
+                    addSocket(temp)
+                    whoseTurn.splice(i, 1)
+                    xS.splice(i, 1)
+                    oS.splice(i, 1)
+                    tableDone.splice(i, 1)
+                    state.splice(i, 1)
 
                 } else {
-                    addSocket(clients[i][0])
-                    clients.splice(clients[i], 1)
-                    xS.splice(xS[i], 1)
-                    oS.splice(oS[i], 1)
-                    tableDone.splice(tableDone[i], 1)
-                    state.splice(state[i], 1)
+                    temp = clients[i][0]
+                    clients.splice(i, 1)
+                    addSocket(temp)
+                    whoseTurn.splice(i, 1)
+                    xS.splice(i, 1)
+                    oS.splice(i, 1)
+                    tableDone.splice(i, 1)
+                    state.splice(i, 1)
                 }
             } else {
-                clients.splice(clients[i], 1)
-                xS.splice(xS[i], 1)
-                oS.splice(oS[i], 1)
-                tableDone.splice(tableDone[i], 1)
-                state.splice(state[i], 1)
+                clients.splice(i, 1)
+                xS.splice(i, 1)
+                oS.splice(i, 1)
+                whoseTurn.splice(i, 1)
+                tableDone.splice(i, 1)
+                state.splice(i, 1)
             }
             console.log(clients)
 
