@@ -107,7 +107,8 @@ io.on('connection', (socket) => {
 
 
     socket.on('turn', (i) => {
-        console.log('turn')
+        console.log(clients)
+        console.log(tableDone)
         if (state[index]) {
             console.log(whoseTurn[index], socket.id)
             console.log('turn')
