@@ -11,6 +11,8 @@ const io = new Server(server);
 app.get('/', (req, res) => {
     res.sendFile(join(__dirname, 'index.html'));
 });
+
+
 state = []
 whoseTurn = []
 xS = []
@@ -96,7 +98,9 @@ io.on('connection', (socket) => {
         whoseTurn[i] = clients[i][0]
         console.log(whoseTurn[i])
         socket.join('room' + i)
-        io.to('room' + i).emit("turn", whoseTurn[i])
+        io.to(clients[i][0]).emit("turn", whoseTurn[i])
+        io.to(clients[i][1]).emit("turn", whoseTurn[i])
+            // io.to('room' + i).emit("turn", whoseTurn[i])
     }
     let index = inClients(socket.id)
 
@@ -116,7 +120,9 @@ io.on('connection', (socket) => {
             }
 
             if (whoseTurn[index] == socket.id && !tableDone[index].includes(i)) {
-                io.to('room' + index).emit('doneTurn', i, pattern)
+                // io.to('room' + index).emit('doneTurn', i, pattern)
+                io.to(clients[index][0]).emit("doneTurn", i, pattern)
+                io.to(clients[index][1]).emit("doneTurn", i, pattern)
                 if (pattern == 'x') {
                     xS[index].push(i)
                 } else {
@@ -128,19 +134,25 @@ io.on('connection', (socket) => {
                 } else {
                     whoseTurn[index] = clients[index][0]
                 }
-                io.to('room' + index).emit("turn", whoseTurn[index])
+                // io.to('room' + index).emit("turn", whoseTurn[index])
+                io.to(clients[index][0]).emit("turn", whoseTurn[index])
+                io.to(clients[index][1]).emit("turn", whoseTurn[index])
                 tableDone[index].push(i)
                 if (checkIfWin(oS[index])) {
                     state[index] = 0
 
                     console.log('O wins')
-                    io.to('room' + index).emit("win", clients[index][1])
+                        // io.to('room' + index).emit("win", clients[index][1])
+                    io.to(clients[index][0]).emit("win", clients[index][1])
+                    io.to(clients[index][1]).emit("win", clients[index][1])
                 }
                 if (checkIfWin(xS[index])) {
                     state[index] = 0
 
                     console.log('O wins')
-                    io.to('room' + index).emit("win", clients[index][0])
+                    io.to(clients[index][0]).emit("win", clients[index][0])
+                    io.to(clients[index][1]).emit("win", clients[index][0])
+                        // io.to('room' + index).emit("win", clients[index][0])
                 }
             }
         }
@@ -148,42 +160,43 @@ io.on('connection', (socket) => {
     socket.on('start', () => {
         console.log('start', socket.id)
     })
-    socket.on('room', () => {
-        console.log('room')
-        io.to('room' + index).emit('rom')
-    })
+
+
     socket.on('disconnect', () => {
         let i = inClients(socket.id)
-        if (clients[i].length == 2) {
-            if (socket.id == clients[i][0]) {
-                addSocket(clients[i][1])
-                clients.splice(clients[i], 1)
-                xS.splice(xS[i], 1)
-                oS.splice(oS[i], 1)
-                tableDone.splice(tableDone[i], 1)
-                state.splice(state[i], 1)
+        if (i != -1) {
+            if (clients[i].length == 2) {
+                if (socket.id == clients[i][0]) {
+                    addSocket(clients[i][1])
+                    clients.splice(clients[i], 1)
+                    xS.splice(xS[i], 1)
+                    oS.splice(oS[i], 1)
+                    tableDone.splice(tableDone[i], 1)
+                    state.splice(state[i], 1)
 
+                } else {
+                    addSocket(clients[i][0])
+                    clients.splice(clients[i], 1)
+                    xS.splice(xS[i], 1)
+                    oS.splice(oS[i], 1)
+                    tableDone.splice(tableDone[i], 1)
+                    state.splice(state[i], 1)
+                }
             } else {
-                addSocket(clients[i][0])
                 clients.splice(clients[i], 1)
                 xS.splice(xS[i], 1)
                 oS.splice(oS[i], 1)
                 tableDone.splice(tableDone[i], 1)
                 state.splice(state[i], 1)
             }
-        } else {
-            clients.splice(clients[i], 1)
-            xS.splice(xS[i], 1)
-            oS.splice(oS[i], 1)
-            tableDone.splice(tableDone[i], 1)
-            state.splice(state[i], 1)
+            console.log(clients)
+
+
         }
-        console.log(clients)
-
-
     })
+})
 
-});
+
 
 server.listen(3000, () => {
     console.log('server running at http://localhost:3000');
