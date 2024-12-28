@@ -57,7 +57,7 @@ function inClients(id) {
 }
 
 function addSocket(id) {
-    if (clients.length == 0 && whoseTurn.length == 0) {
+    if (clients.length == 0) {
         clients.push([id])
         state.push(0)
         tableDone.push([])
