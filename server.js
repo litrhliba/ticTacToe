@@ -94,6 +94,18 @@ function addSocket(id) {
     }
 }
 
+function ifInGame(id) {
+    temp = inClients(id)
+    if (temp == -1) {
+        return false
+    } else {
+        if (clients[temp].length == 2) {
+            return true
+        } else {
+            return false
+        }
+    }
+}
 
 io.on('connection', (socket) => {
 
@@ -118,7 +130,7 @@ io.on('connection', (socket) => {
         console.log('T', tableDone)
         console.log('W', whoseTurn)
         console.log('S', state)
-        if (state[index]) {
+        if (ifInGame(socket.id)) {
             // console.log(whoseTurn[index], socket.id)
             // console.log('turn')
             let pattern
@@ -129,7 +141,7 @@ io.on('connection', (socket) => {
                 pattern = 'o'
             }
 
-            if (whoseTurn[index] == socket.id && !tableDone[index].includes(i) && state[index]) {
+            if (whoseTurn[index] == socket.id && !tableDone[index].includes(i) && ifInGame(socket.id)) {
                 // io.to('room' + index).emit('doneTurn', i, pattern)
                 io.to(clients[index][0]).emit("doneTurn", i, pattern)
                 io.to(clients[index][1]).emit("doneTurn", i, pattern)
@@ -149,20 +161,40 @@ io.on('connection', (socket) => {
                 io.to(clients[index][1]).emit("turn", whoseTurn[index])
                 tableDone[index].push(i)
                 if (checkIfWin(oS[index])) {
-                    state[index] = 0
-
-                    console.log('O wins')
-                        // io.to('room' + index).emit("win", clients[index][1])
                     io.to(clients[index][0]).emit("win", clients[index][1])
                     io.to(clients[index][1]).emit("win", clients[index][1])
+                    clients.splice(index, 1)
+
+                    whoseTurn.splice(index, 1)
+                    xS.splice(index, 1)
+                    oS.splice(index, 1)
+                    tableDone.splice(index, 1)
+                    state.splice(index, 1)
+                    console.log('C', clients)
+                    console.log('T', tableDone)
+                    console.log('W', whoseTurn)
+                    console.log('S', state)
+                    console.log('O wins')
+                        // io.to('room' + index).emit("win", clients[index][1])
+
                 }
                 if (checkIfWin(xS[index])) {
-                    state[index] = 0
-
-                    console.log('X wins')
                     io.to(clients[index][0]).emit("win", clients[index][0])
                     io.to(clients[index][1]).emit("win", clients[index][0])
-                        // io.to('room' + index).emit("win", clients[index][0])
+                    clients.splice(index, 1)
+
+                    whoseTurn.splice(index, 1)
+                    xS.splice(index, 1)
+                    oS.splice(index, 1)
+                    tableDone.splice(index, 1)
+                    state.splice(index, 1)
+                    console.log('C', clients)
+                    console.log('T', tableDone)
+                    console.log('W', whoseTurn)
+                    console.log('S', state)
+                    console.log('X wins')
+
+                    // io.to('room' + index).emit("win", clients[index][0])
                 }
             }
         }
