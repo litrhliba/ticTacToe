@@ -31,6 +31,14 @@ winPatterns = [
     [3, 5, 7]
 ]
 
+function checkIfTie(arr1, arr2, tableD) {
+    if (checkIfWin(arr1) == 0 && checkIfWin(arr1) == 0 && tableD.length == 9) {
+        return 1
+    } else {
+        return 0
+    }
+}
+
 function checkIfWin(arr) {
     for (let i = 0; i < winPatterns.length; i++) {
         let a = 1
@@ -187,6 +195,10 @@ io.on('connection', (socket) => {
                     console.log('O wins')
                         // io.to('room' + index).emit("win", clients[index][1])
 
+                }
+                if (checkIfTie(xS[index], oS[index], tableDone[index])) {
+                    io.to(clients[index][0]).emit("tie")
+                    io.to(clients[index][1]).emit("tie")
                 }
                 if (checkIfWin(xS[index])) {
                     io.to(clients[index][0]).emit("win", clients[index][0])
