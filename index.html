@@ -14,10 +14,12 @@
 
 <body>
     <h1>Hellow Word</h1>
-    <p id="message">asdf</p>
+    <p id="message">Wait</p>
+    <p>Your Opponent is <span id="opponent">...</span></p>
+    nickname:<input type="text" name="nickname" id="nickname">
+
     <div id="table" class="container text-center">
     </div>
-
 
     <button id="start">Start</button>
 </body>
@@ -26,6 +28,8 @@
     let message = document.getElementById('message')
     let table = document.getElementById('table')
     let start = document.getElementById('start')
+    let opponent = document.getElementById('opponent')
+    let nickname = document.getElementById('nickname')
         // table.innerHTML += '<div class = "container text-center"> '
     for (let index = 0; index < 3; index++) {
         let temp = '<div class="row">'
@@ -65,8 +69,12 @@
     start.addEventListener('click', (e) => {
         console.log('start')
         e.preventDefault
-        socket.emit('room')
+        socket.emit('start', nickname.value)
+        start = null
 
+    })
+    socket.on('opponent', (oPNick) => {
+        opponent.innerHTML = oPNick
     })
     socket.on('doneTurn', (i, pattern) => {
         console.log('doneTurn ')

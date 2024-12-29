@@ -13,9 +13,10 @@ app.get('/', (req, res) => {
 });
 
 
-state = []
+
 whoseTurn = []
 xS = []
+nicknames = []
 oS = []
 clients = []
 tableDone = []
@@ -56,30 +57,33 @@ function inClients(id) {
     return -1
 }
 
-function addSocket(id) {
+function addSocket(id, nickname) {
     if (clients.length == 0) {
         clients.push([id])
-        state.push(0)
+        nicknames.push([nickname])
         tableDone.push([])
         xS.push([])
         oS.push([])
-        console.log(state)
+
         whoseTurn.push(id)
     } else {
         if (clients[clients.length - 1].length == 1) {
             clients[clients.length - 1][1] = id
-            state[state.length - 1] = 1
-            console.log(state)
+
+            nicknames[clients.length - 1][1] = nickname
             tableDone.push([])
             xS.push([])
             oS.push([])
             let i = inClients(id)
             whoseTurn[i] = clients[i][0]
+            io.to(clients[i][0]).emit('opponent', nicknames[i][1])
+            io.to(clients[i][1]).emit('opponent', nicknames[i][0])
         } else {
             clients.push([id])
-            state.push(0)
+            nicknames.push([nickname])
+
             whoseTurn.push(id)
-            console.log(state)
+
             tableDone.push([])
             xS.push([])
             oS.push([])
@@ -90,7 +94,8 @@ function addSocket(id) {
         console.log('C', clients)
         console.log('T', tableDone)
         console.log('W', whoseTurn)
-        console.log('S', state)
+        console.log('N', nicknames)
+
     }
 }
 
@@ -109,17 +114,19 @@ function ifInGame(id) {
 
 io.on('connection', (socket) => {
 
+    socket.on('start', (nickname) => {
+        if (inClients(socket.id) == -1) {
+            addSocket(socket.id, nickname)
+            let i = inClients(socket.id)
 
-    if (inClients(socket.id) == -1) {
-        addSocket(socket.id)
-        let i = inClients(socket.id)
+            whoseTurn[i] = clients[i][0]
 
-        whoseTurn[i] = clients[i][0]
+            io.to(clients[i][0]).emit("turn", whoseTurn[i])
+            io.to(clients[i][1]).emit("turn", whoseTurn[i])
+                // io.to('room' + i).emit("turn", whoseTurn[i])
+        }
+    })
 
-        io.to(clients[i][0]).emit("turn", whoseTurn[i])
-        io.to(clients[i][1]).emit("turn", whoseTurn[i])
-            // io.to('room' + i).emit("turn", whoseTurn[i])
-    }
 
 
     let index
@@ -129,7 +136,8 @@ io.on('connection', (socket) => {
         console.log('C', clients)
         console.log('T', tableDone)
         console.log('W', whoseTurn)
-        console.log('S', state)
+        console.log('N', nicknames)
+
         if (ifInGame(socket.id)) {
             // console.log(whoseTurn[index], socket.id)
             // console.log('turn')
@@ -141,7 +149,7 @@ io.on('connection', (socket) => {
                 pattern = 'o'
             }
 
-            if (whoseTurn[index] == socket.id && !tableDone[index].includes(i) && ifInGame(socket.id)) {
+            if (whoseTurn[index] == socket.id && !tableDone[index].includes(i)) {
                 // io.to('room' + index).emit('doneTurn', i, pattern)
                 io.to(clients[index][0]).emit("doneTurn", i, pattern)
                 io.to(clients[index][1]).emit("doneTurn", i, pattern)
@@ -169,11 +177,13 @@ io.on('connection', (socket) => {
                     xS.splice(index, 1)
                     oS.splice(index, 1)
                     tableDone.splice(index, 1)
-                    state.splice(index, 1)
+                    nicknames.splice(index, 1)
+
                     console.log('C', clients)
                     console.log('T', tableDone)
                     console.log('W', whoseTurn)
-                    console.log('S', state)
+                    console.log('N', nicknames)
+
                     console.log('O wins')
                         // io.to('room' + index).emit("win", clients[index][1])
 
@@ -187,11 +197,13 @@ io.on('connection', (socket) => {
                     xS.splice(index, 1)
                     oS.splice(index, 1)
                     tableDone.splice(index, 1)
-                    state.splice(index, 1)
+                    nicknames.splice(index, 1)
+
                     console.log('C', clients)
                     console.log('T', tableDone)
                     console.log('W', whoseTurn)
-                    console.log('S', state)
+                    console.log('N', nicknames)
+
                     console.log('X wins')
 
                     // io.to('room' + index).emit("win", clients[index][0])
@@ -209,24 +221,29 @@ io.on('connection', (socket) => {
         if (i != -1) {
             if (clients[i].length == 2) {
                 if (socket.id == clients[i][0]) {
+                    tempN = nicknames[i][1]
                     temp = clients[i][1]
+                    nicknames.splice(i, 1)
                     clients.splice(i, 1)
-                    addSocket(temp)
+                    addSocket(temp, tempN)
                     whoseTurn.splice(i, 1)
                     xS.splice(i, 1)
                     oS.splice(i, 1)
+
                     tableDone.splice(i, 1)
-                    state.splice(i, 1)
+
 
                 } else {
+                    tempN = nicknames[i][0]
                     temp = clients[i][0]
                     clients.splice(i, 1)
-                    addSocket(temp)
+                    nicknames.splice(i, 1)
+                    addSocket(temp, tempN)
                     whoseTurn.splice(i, 1)
                     xS.splice(i, 1)
                     oS.splice(i, 1)
                     tableDone.splice(i, 1)
-                    state.splice(i, 1)
+
                 }
             } else {
                 clients.splice(i, 1)
@@ -234,7 +251,8 @@ io.on('connection', (socket) => {
                 oS.splice(i, 1)
                 whoseTurn.splice(i, 1)
                 tableDone.splice(i, 1)
-                state.splice(i, 1)
+                nicknames.splice(i, 1)
+
             }
             console.log(clients)
 
