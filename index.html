@@ -25,6 +25,7 @@
 </body>
 <script>
     const socket = io();
+    let startId = 1
     let message = document.getElementById('message')
     let table = document.getElementById('table')
     let start = document.getElementById('start')
@@ -48,6 +49,7 @@
         } else {
             message.innerHTML = 'Loose'
         }
+        start = null
     })
     socket.on('turn', (id) => {
             if (id == socket.id) {
@@ -66,13 +68,20 @@
     socket.on("disconnect", () => {
         console.log(socket.id); // undefined
     });
-    start.addEventListener('click', (e) => {
-        console.log('start')
-        e.preventDefault
-        socket.emit('start', nickname.value)
-        start = null
 
-    })
+    function emitStart() {
+        console.log('SI', startId)
+        if (startId == 1) {
+            console.log('start')
+
+            socket.emit('start', nickname.value)
+            emitStart = null
+            startId = 0
+        }
+
+    }
+
+    start.addEventListener('click', emitStart)
     socket.on('opponent', (oPNick) => {
         opponent.innerHTML = oPNick
     })
